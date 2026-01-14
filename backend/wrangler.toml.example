@@ -1,0 +1,15 @@
+name = "backend"
+account_id = "your-account-id"
+main = "src/index.ts"
+compatibility_date = "2025-02-04"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+AUTH_URL = "https://your-worker-domain.workers.dev"
+CORS_ORIGIN = "https://your-frontend-domain.pages.dev"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "backend"
+database_id = "your-database-id"
+migrations_dir = "migrations"

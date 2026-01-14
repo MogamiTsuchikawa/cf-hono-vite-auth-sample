@@ -1,0 +1,14 @@
+{
+  "name": "cf-hono-vite-auth-sample",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run -w backend dev",
+    "dev:frontend": "npm run -w frontend dev",
+    "typecheck": "npm run -w backend typecheck && npm run -w frontend typecheck"
+  }
+}

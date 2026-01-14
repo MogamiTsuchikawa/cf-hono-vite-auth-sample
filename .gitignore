@@ -1,0 +1,9 @@
+node_modules
+.DS_Store
+dist
+.vite
+.wrangler
+.env.local
+.dev.vars
+*.log
+backend/wrangler.toml
