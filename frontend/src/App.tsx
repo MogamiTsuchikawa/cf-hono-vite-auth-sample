@@ -171,9 +171,30 @@ export default function App() {
     }
   }
 
-  const handleGoogleSignIn = () => {
-    const callbackUrl = encodeURIComponent(window.location.origin)
-    window.location.href = `${authBase}/auth/signin?provider=google&callbackUrl=${callbackUrl}`
+  const handleGoogleSignIn = async () => {
+    setAuthError(null)
+    setAuthSubmitting(true)
+    try {
+      const csrfToken = await fetchCsrfToken()
+      const form = document.createElement("form")
+      form.method = "POST"
+      form.action = `${authBase}/auth/signin/google`
+      const csrfInput = document.createElement("input")
+      csrfInput.type = "hidden"
+      csrfInput.name = "csrfToken"
+      csrfInput.value = csrfToken
+      const callbackInput = document.createElement("input")
+      callbackInput.type = "hidden"
+      callbackInput.name = "callbackUrl"
+      callbackInput.value = window.location.origin
+      form.append(csrfInput, callbackInput)
+      document.body.appendChild(form)
+      form.submit()
+    } catch (err) {
+      console.error(err)
+      setAuthError("Googleログインに失敗しました。")
+      setAuthSubmitting(false)
+    }
   }
 
   if (authLoading) {

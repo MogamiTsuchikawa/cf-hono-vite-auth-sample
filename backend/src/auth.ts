@@ -21,14 +21,33 @@ export const handleAuth = (request: Request, env: Env) => {
   const authOrigin = parseOrigin(env.AUTH_URL)
   const corsOrigin = parseOrigin(env.CORS_ORIGIN)
   const isCrossSite = authOrigin && corsOrigin ? authOrigin !== corsOrigin : false
-  const cookieSameSite = (isSecure && isCrossSite ? "none" : "lax") as const
-  const sessionCookieName = `${isSecure ? "__Secure-" : ""}authjs.session-token`
-  const sessionCookieOptions = {
+  const cookieSameSite: "none" | "lax" =
+    isSecure && isCrossSite ? "none" : "lax"
+  const cookiePrefix = isSecure ? "__Secure-" : ""
+  const useHostPrefix = isSecure && !env.AUTH_COOKIE_DOMAIN
+  const sessionCookieName = `${cookiePrefix}authjs.session-token`
+  const callbackCookieName = `${cookiePrefix}authjs.callback-url`
+  const csrfCookieName = `${useHostPrefix ? "__Host-" : cookiePrefix}authjs.csrf-token`
+  const baseCookieOptions = {
     httpOnly: true,
     sameSite: cookieSameSite,
     path: "/",
     secure: isSecure,
-    ...(env.AUTH_COOKIE_DOMAIN ? { domain: env.AUTH_COOKIE_DOMAIN } : {}),
+  }
+  const cookieDomainOptions = env.AUTH_COOKIE_DOMAIN
+    ? { domain: env.AUTH_COOKIE_DOMAIN }
+    : {}
+  const sessionCookieOptions = {
+    ...baseCookieOptions,
+    ...cookieDomainOptions,
+  }
+  const callbackCookieOptions = {
+    ...baseCookieOptions,
+    ...cookieDomainOptions,
+  }
+  const csrfCookieOptions = {
+    ...baseCookieOptions,
+    ...(useHostPrefix ? {} : cookieDomainOptions),
   }
 
   const providers: Provider[] = [
@@ -75,6 +94,7 @@ export const handleAuth = (request: Request, env: Env) => {
   return Auth(request, {
     basePath: "/auth",
     trustHost: true,
+    useSecureCookies: isSecure,
     secret: env.AUTH_SECRET,
     session: { strategy: "jwt" },
     providers,
@@ -88,6 +108,14 @@ export const handleAuth = (request: Request, env: Env) => {
       sessionToken: {
         name: sessionCookieName,
         options: sessionCookieOptions,
+      },
+      callbackUrl: {
+        name: callbackCookieName,
+        options: callbackCookieOptions,
+      },
+      csrfToken: {
+        name: csrfCookieName,
+        options: csrfCookieOptions,
       },
     },
     callbacks: {
@@ -125,6 +153,9 @@ export const handleAuth = (request: Request, env: Env) => {
           ? url
           : baseUrl
       },
+    },
+    pages: {
+      error: "/auth/error",
     },
   })
 }
